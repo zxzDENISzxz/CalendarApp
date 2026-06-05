@@ -1,0 +1,14 @@
+## .NET Core
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+
+## Свойства и настройки VS Code / Rider
+.vscode/
+.idea/
+*.user
+*.suo
+
+## Локальные секреты
+appsettings.Development.json
