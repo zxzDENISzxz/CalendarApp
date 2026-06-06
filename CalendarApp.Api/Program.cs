@@ -7,6 +7,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Регистрируем политики CORS для разрешения запросов с фронтенда
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()   // Разрешаем запросы с любого адреса (для локальной разработки)
+              .AllowAnyMethod()   // Разрешаем любые методы (GET, POST, DELETE и т.д.)
+              .AllowAnyHeader();  // Разрешаем любые заголовки
+    });
+});
+
 // Регистрируем контроллеры и Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -22,7 +33,10 @@ if (app.Environment.IsDevelopment())
 }
 
 // ХОСТИНГ И МАРШРУТИЗАЦИЯ
-// Сначала регистрируем маршруты контроллеров
+// Включаем CORS
+app.UseCors("AllowAll");
+
+// Регистрируем маршруты контроллеров
 app.MapControllers();
 
 // Запускаем приложение
