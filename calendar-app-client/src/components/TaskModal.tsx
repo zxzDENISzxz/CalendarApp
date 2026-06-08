@@ -6,10 +6,11 @@ interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onTaskCreated: () => void;
-  selectedDate: string; // Формат "YYYY-MM-DD"
+  selectionStart: string; // Принимаем точные ISO-строки выбора диапазона времени
+  selectionEnd: string;
 }
 
-export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCreated, selectedDate }) => {
+export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCreated, selectionStart, selectionEnd }) => {
   // Поля формы
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -23,6 +24,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCre
   const [users, setUsers] = useState<UserDto[]>([]);
   const [loadingData, setLoadingData] = useState(false);
 
+  // Состояния для быстрого создания новой категории (группы)
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [loadingGroup, setLoadingGroup] = useState(false);
+
   // Вспомогательная функция для сброса выбранных пользователей к текущему из localStorage
   const resetToDefaultUser = () => {
     const currentUserId = localStorage.getItem('userId');
@@ -33,7 +39,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCre
     }
   };
 
-  // Загружаем группы и пользователей при открытии модалки
+  // ИСПРАВЛЕНО: Загружаем группы и пользователей при открытии модалки (без синтаксических разрывов)
   useEffect(() => {
     if (isOpen) {
       const loadFormData = async () => {
@@ -58,6 +64,23 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCre
     }
   }, [isOpen]);
 
+  // Автоматический парсинг времени из выделенного диапазона FullCalendar
+  useEffect(() => {
+    if (isOpen && selectionStart && selectionEnd) {
+      const startDate = new Date(selectionStart);
+      const endDate = new Date(selectionEnd);
+
+      const pad = (num: number) => (num < 10 ? '0' : '') + num;
+
+      // Вытаскиваем локальные часы и минуты
+      const startHHMM = `${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`;
+      const endHHMM = `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+
+      setStartTime(startHHMM);
+      setEndTime(endHHMM);
+    }
+  }, [isOpen, selectionStart, selectionEnd]);
+
   if (!isOpen) return null;
 
   const handleUserToggle = (userId: number) => {
@@ -68,7 +91,26 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCre
     }
   };
 
-  // Функция форматирования локальной даты в ISO 8601 со смещением часового пояса (исправляет сдвиг времени)
+  // Функция для создания категории прямо "на лету"
+  const handleCreateGroupDirectly = async () => {
+    if (!newGroupName.trim()) return;
+
+    try {
+      setLoadingGroup(true);
+      const createdGroup = await GroupRequests.create({ name: newGroupName.trim() });
+      setGroups(prevGroups => [...prevGroups, createdGroup]);
+      setSelectedGroupId(createdGroup.id);
+      setIsCreatingGroup(false);
+      setNewGroupName('');
+    } catch (err) {
+      console.error("Не удалось быстро создать группу:", err);
+      alert("Ошибка при создании категории.");
+    } finally {
+      setLoadingGroup(false);
+    }
+  };
+
+  // Функция форматирования локальной даты в ISO 8601 со смещением часового пояса
   const toLocalISOString = (date: Date) => {
     const tzo = -date.getTimezoneOffset();
     const dif = tzo >= 0 ? '+' : '-';
@@ -88,21 +130,19 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCre
     e.preventDefault();
     if (!title.trim()) return;
 
-    // Парсим введенное время и собираем валидные объекты локальных дат
+    // Собираем итоговые даты на основе базового дня из выборки и выставленного времени в инпутах
+    const baseDate = new Date(selectionStart);
+
     const [startHours, startMinutes] = startTime.split(':');
-    const startDateObj = new Date(selectedDate);
+    const startDateObj = new Date(baseDate);
     startDateObj.setHours(Number(startHours), Number(startMinutes), 0, 0);
 
     const [endHours, endMinutes] = endTime.split(':');
-    const endDateObj = new Date(selectedDate);
+    const endDateObj = new Date(baseDate);
     endDateObj.setHours(Number(endHours), Number(endMinutes), 0, 0);
 
-    // Генерируем строки вида 2026-06-08T10:15:00+05:00
     const startIso = toLocalISOString(startDateObj);
     const endIso = toLocalISOString(endDateObj);
-
-    // Логируем для отладки, чтобы проверить чекбоксы перед отправкой
-    console.log("Попытка создания задачи. Передаваемые userIds:", selectedUserIds);
 
     const taskData: CreateTaskDto = {
       title,
@@ -116,15 +156,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCre
 
     try {
       await TaskRequests.create(taskData);
-      onTaskCreated(); // Перезагружаем календарь
-      onClose();       // Закрываем модалку
+      onTaskCreated(); 
+      onClose();       
       
-      // Полная зачистка формы к дефолтному состоянию
+      // Сброс полей к дефолтному состоянию
       setTitle('');
       setDescription('');
       setSelectedGroupId('');
-      setStartTime('10:00');
-      setEndTime('11:00');
+      setIsCreatingGroup(false);
+      setNewGroupName('');
       resetToDefaultUser();
     } catch (err) {
       console.error("Ошибка создания задачи:", err);
@@ -132,10 +172,20 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCre
     }
   };
 
+  // Красиво форматируем дату для заголовка (например, "8 июня 2026 г.")
+  const formatHeaderDate = (isoString: string) => {
+    if (!isoString) return '';
+    return new Date(isoString).toLocaleDateString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   return (
     <div className="modal-overlay">
       <div className="modal-card">
-        <h3>Новая задача на {selectedDate}</h3>
+        <h3>Новая задача на {formatHeaderDate(selectionStart)}</h3>
         {loadingData ? (
           <p>Загрузка параметров...</p>
         ) : (
@@ -163,14 +213,60 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onTaskCre
 
             <div className="form-group">
               <label>Категория (Группа)</label>
-              <select value={selectedGroupId} onChange={e => setSelectedGroupId(e.target.value === '' ? '' : Number(e.target.value))}>
-                <option value="">Без категории</option>
-                {groups.map(g => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
+              
+              {!isCreatingGroup ? (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <select 
+                    value={selectedGroupId} 
+                    onChange={e => setSelectedGroupId(e.target.value === '' ? '' : Number(e.target.value))}
+                    style={{ flex: 1 }}
+                  >
+                    <option value="">Без категории</option>
+                    {groups.map(g => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsCreatingGroup(true)}
+                    style={{ padding: '0 12px', cursor: 'pointer', fontSize: '16px', background: '#edf2f7', border: '1px solid #cbd5e0', borderRadius: '4px' }}
+                  >
+                    ＋
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Название новой категории..." 
+                    value={newGroupName}
+                    onChange={e => setNewGroupName(e.target.value)}
+                    disabled={loadingGroup}
+                    style={{ flex: 1, padding: '6px' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={handleCreateGroupDirectly} 
+                    disabled={loadingGroup}
+                    style={{ padding: '6px 12px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    {loadingGroup ? '...' : 'ОК'}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setIsCreatingGroup(false);
+                      setNewGroupName('');
+                    }} 
+                    disabled={loadingGroup}
+                    style={{ padding: '6px 12px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Отмена
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="form-group">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Auth } from './components/Auth';
 import { CalendarView } from './components/CalendarView'; // Импортируем календарь
 
