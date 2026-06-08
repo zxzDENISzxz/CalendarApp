@@ -12,3 +12,4 @@ obj/
 
 ## Локальные секреты
 appsettings.Development.json
+calendar-app-client/.vite/

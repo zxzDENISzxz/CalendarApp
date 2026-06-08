@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic; // Не забудьте добавить это!
 
 namespace CalendarApp.Api.DTOs;
 
 public class CreateTaskDto
 {
     public const int MaxTitleLength = 100;
+    
     [Required(ErrorMessage = "Название задачи обязательно для заполнения")]
     [StringLength(MaxTitleLength, ErrorMessage = "Название не может быть длиннее {1} символов")]
     public string Title { get; set; } = string.Empty;
@@ -22,5 +24,6 @@ public class CreateTaskDto
     // Вместо целых объектов передаем только ID группы, если она есть
     public int? GroupId { get; set; }
 
-    public List<int> UserIds { get; set; } = new ();
+    // ДОБАВЛЕНО: ID пользователей для назначения
+    public List<int>? UserIds { get; set; }
 }

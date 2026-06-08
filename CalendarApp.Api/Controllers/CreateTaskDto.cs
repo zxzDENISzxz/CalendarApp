@@ -69,8 +69,8 @@ public class TasksController : ControllerBase
         {
             Title = dto.Title,
             Description = dto.Description,
-            StartAt = startUtc,
-            EndAt = endUtc,
+            StartAt = DateTime.SpecifyKind(dto.StartAt, DateTimeKind.Local).ToUniversalTime(),
+            EndAt = DateTime.SpecifyKind(dto.EndAt, DateTimeKind.Local).ToUniversalTime(),
             IsExternal = dto.IsExternal,
             GroupId = dto.GroupId
         };
@@ -105,5 +105,43 @@ public class TasksController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // 4. Обновить задачу (PUT запрос)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateTask([FromRoute] int id, [FromBody] CreateTaskDto dto)
+    {
+        // Ищем задачу вместе с её текущими связями (пользователями)
+        var task = await _context.Tasks
+            .Include(t => t.Users)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (task == null) return NotFound();
+
+        // Бизнес-валидация
+        if (dto.EndAt < dto.StartAt)
+        {
+            return BadRequest(new { message = "Дата окончания не может быть раньше даты начала" });
+        }
+
+        // Обновляем основные поля
+        task.Title = dto.Title;
+        task.Description = dto.Description;
+        task.StartAt = DateTime.SpecifyKind(dto.StartAt, DateTimeKind.Local).ToUniversalTime();
+        task.EndAt = DateTime.SpecifyKind(dto.EndAt, DateTimeKind.Local).ToUniversalTime();
+        task.IsExternal = dto.IsExternal;
+        task.GroupId = dto.GroupId;
+
+        // Обновляем назначенных пользователей (если они переданы в DTO)
+        if (dto.UserIds != null)
+        {
+            // Получаем сущности пользователей по их ID
+            var users = await _context.Users.Where(u => dto.UserIds.Contains(u.Id)).ToListAsync();
+            task.Users = users;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return NoContent(); // 204 статус — успешно обновлено
     }
 }
