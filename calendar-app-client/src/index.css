@@ -1,3 +1,6 @@
+/* ==========================================================================
+   1. БАЗОВЫЕ И ГЛОБАЛЬНЫЕ СТИЛИ (Сброс отступов и шрифты)
+   ========================================================================== */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -10,7 +13,9 @@ body {
   color: #212529;
 }
 
-/* Стили для экрана авторизации */
+/* ==========================================================================
+   2. ЭКРАН АВТОРИЗАЦИИ / РЕГИСТРАЦИИ (Вход в систему)
+   ========================================================================== */
 .auth-container {
   display: flex;
   justify-content: center;
@@ -102,27 +107,278 @@ body {
   text-align: center;
 }
 
-/* Стили для модального окна задач */
+/* ==========================================================================
+   3. ОБЩАЯ СТРУКТУРА ПРИЛОЖЕНИЯ (Двухколоночный лэйаут)
+   ========================================================================== */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f7fafc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   4. ЛЕВАЯ ПАНЕЛЬ (Сайдбар управления)
+   ========================================================================== */
+.sidebar {
+  width: 280px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+}
+
+.sidebar-brand h2 {
+  font-size: 20px;
+  color: #1a202c;
+  margin: 0 0 24px 8px;
+  font-weight: 700;
+}
+
+.sidebar-section {
+  margin-bottom: 20px;
+}
+
+.sidebar-divider {
+  border: 0;
+  border-top: 1px solid #edf2f7;
+  margin: 8px 0 20px 0;
+}
+
+/* Кнопка создания задачи в Сайдбаре */
+.btn-create-task {
+  width: 100%;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+  margin-bottom: 16px;
+}
+
+.btn-create-task:hover {
+  background-color: #4338ca;
+}
+
+/* Элементы навигационного меню списков */
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.menu-item:hover {
+  background-color: #f7fafc;
+  color: #1a202c;
+}
+
+.menu-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Цифровые индикаторы количества задач (Бейджи) */
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.badge-today {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.badge-all {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Секция Категорий/Групп в сайдбаре */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  margin-bottom: 12px;
+}
+
+.section-header h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a0aec0;
+  margin: 0;
+}
+
+.btn-add-group {
+  background: none;
+  border: none;
+  color: #718096;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.btn-add-group:hover {
+  background-color: #edf2f7;
+  color: #1a202c;
+}
+
+.group-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.group-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #4a5568;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.group-item:hover {
+  background-color: #f7fafc;
+}
+
+.group-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.group-marker {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.group-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Кнопка изменения группы (карандаш) */
+.btn-edit-group {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  padding: 2px;
+}
+
+.group-item:hover .btn-edit-group {
+  opacity: 1;
+}
+
+.btn-edit-group:hover {
+  transform: scale(1.15);
+}
+
+.sidebar-loading, .sidebar-empty {
+  font-size: 13px;
+  color: #a0aec0;
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* ==========================================================================
+   5. МОДАЛЬНЫЕ ОКНА (Базовые общие стили для форм)
+   ========================================================================== */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
 }
 
 .modal-card {
+  position: relative;
   background: white;
   padding: 30px;
-  border-radius: 10px;
+  border-radius: 12px;
   width: 100%;
   max-width: 480px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  overflow-y: visible !important;
+}
+
+.modal-close-x {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none !important;
+  border: none !important;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  color: #a0aec0;
+  transition: all 0.2s;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.modal-close-x:hover {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  position: relative; 
 }
 
 .modal-card h3 {
@@ -150,6 +406,7 @@ body {
   background-color: white;
 }
 
+/* Списки пользователей внутри форм создания задач */
 .users-checkbox-list {
   max-height: 120px;
   overflow-y: auto;
@@ -172,6 +429,7 @@ body {
   margin-bottom: 0;
 }
 
+/* Кнопки действий в модалках */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -201,4 +459,259 @@ body {
 
 .btn-submit:hover {
   background: #5a6fd6;
+}
+
+/* ==========================================================================
+   6. МОДАЛЬНОЕ ОКНО ПРОСМОТРА СПИСКА ЗАДАЧ (TaskListModal)
+   ========================================================================== */
+
+/* Специфическое расширение для карточки списка */
+.modal-card.list-modal-card {
+  max-width: 750px;
+  width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+}
+
+/* Верхняя линия заголовка и крестика */
+.list-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 12px;
+}
+
+.list-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #1a202c;
+  font-weight: 600;
+}
+
+/* Переопределенная кнопка-крестик закрытия окна */
+.btn-close-modal {
+  background: none !important;
+  border: none !important;
+  font-size: 24px;
+  cursor: pointer;
+  color: #a0aec0;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.btn-close-modal:hover {
+  background-color: #f7fafc !important;
+  color: #4a5568;
+}
+
+/* Контейнер таблицы со скроллом */
+.table-wrapper {
+  overflow-y: auto;
+  flex: 1;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+/* Внутренняя таблица задач */
+.task-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+  table-layout: fixed; /* Предотвращает сползание колонок */
+}
+
+/* Липкий заголовок таблицы */
+.task-list-table th {
+  background-color: #f7fafc;
+  color: #718096;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-bottom: 2px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Пропорции распределения колонок таблицы */
+.task-list-table th:nth-child(1) { width: 25%; }
+.task-list-table th:nth-child(2) { width: 20%; }
+.task-list-table th:nth-child(3) { width: 45%; }
+.task-list-table th:nth-child(4) { width: 10%; text-align: center; }
+
+.task-list-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf2f7;
+  vertical-align: top;
+  color: #2d3748;
+  word-break: break-word; /* Автоматический перенос длинных ссылок UrFU */
+}
+
+.task-list-table tr:last-child td {
+  border-bottom: none;
+}
+
+.task-list-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Стилизация текстового контента в ячейках */
+.task-title-cell strong {
+  font-size: 15px;
+  color: #1a202c;
+}
+
+.task-time-cell {
+  font-weight: 500;
+  color: #4f46e5;
+  line-height: 1.4;
+}
+
+.task-desc-cell {
+  color: #4a5568;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Переопределенная кнопка удаления (Иконка корзины) */
+.btn-delete-task-row {
+  background: none !important;
+  border: none !important;
+  cursor: pointer;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.btn-delete-task-row:hover {
+  background-color: #fee2e2 !important;
+}
+
+/* Тег-плашка для внешних/назначенных задач */
+.external-tag {
+  display: inline-block;
+  font-size: 11px;
+  background-color: #fef3c7;
+  color: #d97706;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.list-modal-loading, .list-modal-empty {
+  text-align: center;
+  padding: 40px;
+  color: #a0aec0;
+  font-size: 15px;
+  margin: 0;
+}
+
+/* ==========================================================================
+   7. СТИЛИ ДЛЯ ВЫПАДАЮЩЕГО СПИСКА ПОЛЬЗОВАТЕЛЕЙ (Autocomplete)
+   ========================================================================== */
+
+/* Контейнер тегов выбранных пользователей */
+.selected-users-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* Плашка выбранного юзера */
+.user-tag {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e0e7ff;
+  color: #4338ca;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 6px;
+}
+
+/* Кнопка удаления тега */
+.user-tag button {
+  background: none;
+  border: none;
+  color: #4338ca;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  font-weight: bold;
+}
+
+.user-tag button:hover {
+  color: #1e1b4b;
+}
+
+/* Абсолютно позиционированное окно результатов поиска */
+.user-search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1005;
+  margin-top: 4px;
+}
+
+/* Строка пользователя в списке */
+.dropdown-item-user {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: background-color 0.15s;
+}
+
+.dropdown-item-user:hover {
+  background-color: #f7fafc;
+}
+
+.dropdown-user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a202c;
+}
+
+.dropdown-user-email {
+  font-size: 12px;
+  color: #718096;
+}
+
+/* Состояние "Ничего не найдено" */
+.dropdown-item-empty {
+  padding: 12px;
+  text-align: center;
+  color: #a0aec0;
+  font-size: 14px;
 }
