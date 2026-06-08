@@ -11,12 +11,23 @@ export interface GroupDto {
 }
 
 export interface TaskDto {
+  assignedUsers: any;
+  end: any;
   id: number;
   title: string;
   description?: string;
-  start: string; // ISO дата-время строка
-  end: string;   // ISO дата-время строка
+  startAt: string;
+  endAt: string;
   isExternal: boolean;
-  groupId?: number;
-  assignedUsers: UserDto[];
+  groupId: number | null;
+  userIds: number[];
+}
+export interface CreateTaskDto {
+  title: string;
+  description?: string;
+  startAt: string;
+  endAt: string;
+  isExternal: boolean;
+  groupId: number | null;
+  userIds: number[];
 }
