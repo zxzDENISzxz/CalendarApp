@@ -20,14 +20,14 @@ public class TasksController : ControllerBase
 
     // 1. Получить все задачи (Возвращаем TaskDto)
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TaskDto>>> GetTasks()
+    public async Task<ActionResult<IEnumerable<object>>> GetTasks()
     {
         var tasks = await _context.Tasks
             .Include(t => t.Group)
             .Include(t => t.Users)
             .ToListAsync();
         
-        var taskDtos = tasks.Select(t => new TaskDto
+        var taskDtos = tasks.Select(t => new
         {
             Id = t.Id,
             Title = t.Title,
@@ -36,7 +36,12 @@ public class TasksController : ControllerBase
             EndAt = t.EndAt,
             IsExternal = t.IsExternal,
             GroupId = t.GroupId,
-            UserIds = t.Users.Select(u => u.Id).ToList()
+            assignedUsers = t.Users.Select(u => new 
+            {
+                id = u.Id,
+                name = u.Name,
+                email = u.Email
+            }).ToList()
         }).ToList();
 
         return Ok(taskDtos);
@@ -52,16 +57,36 @@ public class TasksController : ControllerBase
             return BadRequest(new { message = "Дата окончания не может быть раньше даты начала" });
         }
 
+        // ИСПРАВЛЕНИЕ ВРЕМЕНИ:
+        // Поскольку фронтенд присылает ISO-строку с часовым поясом, .NET парсит её в dto.StartAt.
+        // Метод .ToUniversalTime() честно переведет локальные 10:15 (например, +5) в реальное UTC время (05:15).
+        // В базу запишется правильная точка во времени, и при чтении сдвига больше не будет!
+        var startUtc = dto.StartAt.ToUniversalTime();
+        var endUtc = dto.EndAt.ToUniversalTime();
+
         // Маппинг из DTO в сущность БД
         var task = new TaskItem
         {
             Title = dto.Title,
             Description = dto.Description,
-            StartAt = DateTime.SpecifyKind(dto.StartAt, DateTimeKind.Utc),
-            EndAt = DateTime.SpecifyKind(dto.EndAt, DateTimeKind.Utc),
+            StartAt = startUtc,
+            EndAt = endUtc,
             IsExternal = dto.IsExternal,
             GroupId = dto.GroupId
         };
+
+        // ИСПРАВЛЕНИЕ ИСПОЛНИТЕЛЕЙ:
+        // Проверяем, пришли ли ID пользователей из CreateTaskDto (которое мы обновили ранее)
+        if (dto.UserIds != null && dto.UserIds.Any())
+        {
+            // Находим пользователей в бд по их ID
+            var assignedUsers = await _context.Users
+                .Where(u => dto.UserIds.Contains(u.Id))
+                .ToListAsync();
+
+            // Привязываем их к навигационному свойству сущности TaskItem
+            task.Users = assignedUsers;
+        }
 
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();

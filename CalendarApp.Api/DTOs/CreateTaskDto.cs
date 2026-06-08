@@ -21,4 +21,6 @@ public class CreateTaskDto
 
     // Вместо целых объектов передаем только ID группы, если она есть
     public int? GroupId { get; set; }
+
+    public List<int> UserIds { get; set; } = new ();
 }
